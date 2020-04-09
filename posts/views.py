@@ -8,7 +8,7 @@ from django.db.models import Count
 
 
 def index(request):
-    post_list = Post.objects.order_by("-pub_date").all()
+    post_list = Post.objects.select_related('author').order_by("-pub_date").all()
     paginator = Paginator(post_list, 5) # показывать по 10 записей на странице.
     page_number = request.GET.get('page') # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number) # получить записи с нужным смещением
@@ -21,7 +21,7 @@ def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
     # Метод .filter позволяет ограничить поиск по критериям. Это аналог добавления
     # условия WHERE group_id = {group_id}
-    posts = Post.objects.filter(group=group).order_by("-pub_date").all()
+    posts = Post.objects.filter(group=group).order_by("-pub_date").all().select_related('author')
     paginator = Paginator(posts, 12) # показывать по 12 записей на странице.
     page_number = request.GET.get('page') # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number)
@@ -45,7 +45,7 @@ def post_new(request):
 def profile(request, username):
     profile = get_object_or_404(User, username=username)
     post_numbers = Post.objects.filter(author=profile).all().count()
-    posts = Post.objects.filter(author=profile).order_by("-pub_date").all()
+    posts = Post.objects.filter(author=profile).order_by("-pub_date").all().select_related('author')
     paginator = Paginator(posts, 5) # показывать по 5 записей на странице.
     page_number = request.GET.get('page') # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number)
@@ -124,6 +124,7 @@ def follow_index(request):
     page = paginator.get_page(page_number)
     return render(request, "follow.html", {'page':page, 'paginator':paginator})
 
+
 @login_required
 def profile_follow(request, username):
     profile = get_object_or_404(User, username=username)
@@ -133,6 +134,7 @@ def profile_follow(request, username):
             Follow.objects.create(user=request.user, author=profile)
             return redirect ("profile", username) 
     return redirect ("profile", username) 
+
 
 @login_required
 def profile_unfollow(request, username):
