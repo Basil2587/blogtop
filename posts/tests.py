@@ -60,7 +60,7 @@ class SimpleTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_IMG_Tag_On_Page(self):
-        with open('media/posts/fora.jpg','rb') as img:
+        with open('tmp/fora.jpg','rb') as img:
             self.client.post("/new/", {'text': 'Пост с картинкой', 'group': self.group.id, 'image': img})
         new = Post.objects.get(text='Пост с картинкой')
         response = self.client.get(f"/testname/")
