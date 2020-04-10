@@ -16,6 +16,7 @@ class SimpleTestCase(TestCase):
                 )
         self.client.force_login(self.user)
         self.group = Group.objects.create(title="king12", slug="lion")
+        self.post = Post.objects.create(author=self.user, text='Тестовый текст для моего проекта')
 
     def test_profile(self):
         response = self.client.get("/testname/")
@@ -24,10 +25,8 @@ class SimpleTestCase(TestCase):
     
     @override_settings(CACHES=settings.TEST_CACHES)
     def test_authorization_post(self):
-        test_post = 'Создали новый пост для ника testname'
-        self.client.post("/new/", {"text":test_post})
         response = self.client.get('/')
-        self.assertContains(response, test_post)
+        self.assertContains(response,"Тестовый текст для моего проекта")
 
     def test_not_authorization(self):
         self.client.logout()
@@ -37,29 +36,24 @@ class SimpleTestCase(TestCase):
 
     @override_settings(CACHES=settings.TEST_CACHES)
     def test_create_post(self):
-        test_post = 'Создали новый пост для ника testname'
-        self.client.post("/new/", {"text":test_post})
+        self.client.post("/new/", {"text":'Создали новый пост для ника testname'})
         response = self.client.get('/')
-        self.assertContains(response, test_post)
+        self.assertContains(response, 'Создали новый пост для ника testname')
         response = self.client.get("/testname/")
-        self.assertContains(response, test_post)
-        post = Post.objects.get(author=self.user)
-        response = self.client.get(f'/testname/{post.id}/')
-        self.assertContains(response, test_post)
+        self.assertContains(response, 'Создали новый пост для ника testname')
+        posts = Post.objects.get(author=self.user, text='Создали новый пост для ника testname')
+        response = self.client.get(f'/testname/{posts.id}/')
+        self.assertContains(response, 'Создали новый пост для ника testname')
 
     @override_settings(CACHES=settings.TEST_CACHES)
     def test_edit_post(self):
-        test_post = 'Здесь находится пост testname'
-        self.client.post("/new/", {"text":test_post}, follow=True)
-        post = Post.objects.get(author=self.user)
-        test_2 = 'Здесь находится пост testname, новоя редакция.' 
-        self.client.post(f'/testname/{post.id}/edit/', {"text":test_2}, follow=True)
+        self.client.post(f'/testname/{self.post.id}/edit/', {"text":'Тестовый текст для моего проекта, новоя редакция.'}, follow=True)
         response = self.client.get("/testname/")
-        self.assertContains(response, test_2)  
-        response = self.client.get(f'/testname/{post.id}/')
-        self.assertContains(response, test_2) 
+        self.assertContains(response, 'Тестовый текст для моего проекта, новоя редакция.')  
+        response = self.client.get(f'/testname/{self.post.id}/')
+        self.assertContains(response, 'Тестовый текст для моего проекта, новоя редакция.') 
         response = self.client.get("/")
-        self.assertContains(response, test_2)
+        self.assertContains(response, 'Тестовый текст для моего проекта, новоя редакция.')
 
     def test_404(self):
         response = self.client.get("/name/1000/")
@@ -67,15 +61,15 @@ class SimpleTestCase(TestCase):
 
     def test_IMG_Tag_On_Page(self):
         with open('media/posts/fora.jpg','rb') as img:
-            self.client.post("/new/", {'text': 'post with image', 'group': self.group.id, 'image': img})
-        post = Post.objects.get(text='post with image')
+            self.client.post("/new/", {'text': 'Пост с картинкой', 'group': self.group.id, 'image': img})
+        new = Post.objects.get(text='Пост с картинкой')
         response = self.client.get(f"/testname/")
         self.assertContains(response, 'img')
         response = self.client.get(f"/group/{self.group.slug}/")
         self.assertContains(response, 'img')
         response = self.client.get("/")
         self.assertContains(response, 'img')
-        response = self.client.get(f"/testname/{post.id}/")
+        response = self.client.get(f"/testname/{new.id}/")
         self.assertContains(response, 'img')
 
     @override_settings(CACHES=settings.TEST_CACHES)
@@ -87,13 +81,12 @@ class SimpleTestCase(TestCase):
         self.assertNotContains(response, 'post with txt') 
 
     def test_cash(self):
-        test_post20 = 'Текст который появляется после 20 секунд'
-        self.client.post("/new/", {"text":test_post20}, follow=True)
+        self.client.post("/new/", {"text":'Текст который появляется после 20 секунд'}, follow=True)
         response = self.client.get("/")
-        self.assertNotContains(response, test_post20)
+        self.assertNotContains(response, 'Текст который появляется после 20 секунд')
         time.sleep(20) 
         response = self.client.get("/")
-        self.assertContains(response, test_post20)
+        self.assertContains(response, 'Текст который появляется после 20 секунд')
     
     def tearDown(self):
         print('Excellent')
@@ -112,23 +105,22 @@ class Follower_TestCase(TestCase):
 
     def test_follower(self):
         self.client.force_login(self.user_1)
-        test_post1= "Здесь пост первого юзера"
-        self.client.post("/new/", {"text": test_post1})
+        self.client.post("/new/", {"text": "Здесь пост первого юзера"})
         self.client.logout()
         self.client.force_login(self.user_2)
         self.client.get(f'/testname_1/follow')
         #Авторизованный пользователь подписался на self.user_1 и видет его посты
         response = self.client.get("/follow/")
-        self.assertContains(response, test_post1)
+        self.assertContains(response, "Здесь пост первого юзера")
         self.client.logout()
         self.client.force_login(self.user_3)
         response = self.client.get("/follow/")
-        self.assertNotContains(response, test_post1)
+        self.assertNotContains(response, "Здесь пост первого юзера")
         self.client.logout()
         self.client.force_login(self.user_2)
         self.client.get(f'/testname_1/unfollow')
         response = self.client.get("/follow/")
-        self.assertNotContains(response, test_post1)
+        self.assertNotContains(response, "Здесь пост первого юзера")
 
     def test_notauth_user_follow(self):
         #Неавторизованный пользователь не может подписаться на self.user_1
@@ -140,10 +132,9 @@ class Follower_TestCase(TestCase):
     def test_comment(self):
         #Авторизованный пользователь может оставить комментарий
         self.client.force_login(self.user_2)
-        test_post2= "Текст поста второго юзера"
         comment_text = 'Мой первый комментарий'
-        self.client.post("/new/", {"text": test_post2})
-        posts = Post.objects.get(author=self.user_2, text=test_post2)
+        self.client.post("/new/", {"text": "Текст поста второго юзера"})
+        posts = Post.objects.get(author=self.user_2, text="Текст поста второго юзера")
         self.client.post(f'/{self.user_2.username}/{posts.id}/comment/', {"text": comment_text})
         response = self.client.get(f'/{self.user_2.username}/{posts.id}/')
         self.assertContains(response, comment_text)

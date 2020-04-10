@@ -9,7 +9,7 @@ from django.db.models import Count
 
 def index(request):
     post_list = Post.objects.select_related('author').order_by("-pub_date").all()
-    paginator = Paginator(post_list, 5) # показывать по 10 записей на странице.
+    paginator = Paginator(post_list, 5) # показывать по 5 записей на странице.
     page_number = request.GET.get('page') # переменная в URL с номером запрошенной страницы
     page = paginator.get_page(page_number) # получить записи с нужным смещением
     return render(request, 'index.html', {'page': page, 'paginator': paginator})
