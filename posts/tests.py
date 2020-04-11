@@ -1,8 +1,10 @@
 from django.test import TestCase, Client, override_settings
 from .models import Post, User, Group
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
+import tempfile
+from django.core.files.images import ImageFile
+from PIL import Image
 
 
 class SimpleTestCase(TestCase):
@@ -62,8 +64,12 @@ class SimpleTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_IMG_Tag_On_Page(self):
-        image = SimpleUploadedFile(name='test_image.jpg', content=open('tmp/fora.jpg', 'rb').read(), content_type='image/jpeg')
-        self.client.post("/new/", {'text': 'Пост с картинкой', 'group': self.group.id, 'image': image})
+        # Создаю временную картинку и проверяю, что ее могу вставить в пост.
+        with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as f:
+            image = Image.new('RGB', (350, 200), 'green')
+            image.save(f, 'PNG')
+        with open(f.name, mode='rb') as img:
+            self.client.post("/new/", {'text': 'Пост с картинкой', 'group': self.group.id, 'image': img})
         new = Post.objects.get(text='Пост с картинкой')
         response = self.client.get(f"/testname/")
         self.assertContains(response, 'img')
