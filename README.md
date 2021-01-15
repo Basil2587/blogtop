@@ -1,23 +1,25 @@
-# Yatube Social Network
-Social network for publishing personal notes and stories. Users can visit the pages of authors, comment and like posts.
+# Yatube
+Социальная  сеть для блогеров (выполнен во время обучения в Яндекс.Практикум)
+# Описание
+- Можно создать свою страницу.
+- После регистрации пользователь получает свой профайл, то есть получает свою страницу.
+- Если на нее зайти, то можно посмотреть все записи автора.
+- Пользователи могут  заходить на чужие страницы, подписываться на авторов и комментировать их записи.
+- Автор может выбрать для своей страницы имя и уникальный адрес.
+- Есть возможность модерировать записи и блокировать пользователей, если начнут присылать спам.(реализовано через админ-панель)
+- Записи можно отправить в сообщество и посмотреть там записи разных авторов.
 
-## Functionality 
-**Anonymous** users can view the posts and the author's profile.
+# Инструкция по развертыванию проекта
+1. Скачать проект или клонировать с помощью git (`git clone https://github.com/basil2587/hw_final.git`)
+2. Перейти в каталог с проектом и создать виртуальное окружение (`python3 -m venv venv`)
+3. Запустить виртуальное окружение (`source venv/bin/activate`) на Mac/Linux или (`source venv/Scripts/activate`) на Windows
+4. Установить все необходимые пакеты, указанные в файле requirements.txt (`pip install -r requirements.txt`)
+5. Запустить миграции (`python manage.py migrate`)
+6. Для проверки работы проекта запустить тестовый сервер (`python manage.py runserver`)
+7. Перейти по адресу http://127.0.0.1:8000
 
-**Authenticated** users can:
-* create a post, edit and delete it
-* comment on any post
-* follow and unfollow a specific author
-* give like to the post
 
-### Sign Up Process:
-**Required Fields:**
-* Username
-* Password and Password Confirmation
-
-***Note**: To reset the password, you will use an email, so add your email when sign up.*
-
-## Technologies
+## Технологии
 * [Python](https://www.python.org/)
 * [Django 2.2](https://www.djangoproject.com/)
 * [SQLite](https://www.sqlite.org/)
